@@ -12,6 +12,24 @@ session = DBSession()
 class webserverHandler(BaseHTTPRequestHandler):
     def do_GET(self):
         try:
+            if self.path.endswith("/edit"):
+                restaurantIDPath = self.path.split('/')[2]
+                myRestaurantQuery = session.query(Restaurant).filter_by(id = restaurantIDPath).one()
+                self.send_response(200)
+                self.send_header('Content-type', 'text/html')
+                self.end_headers()
+                output = ""
+                output += "<html><body><h1>"
+                output += myRestaurantQuery.name
+                output += "</h3>"
+                output += "<form method='POST' enctype='multipart/form-data' action='/restaurant/%s/edit'>" % restaurantIDPath
+                output += "<input name='newRestaurantName' type='text' placeholder='%s'>" % myRestaurantQuery.name
+                output += "<input type='submit' value='Rename'></form>"
+                output += "</html></body>"
+                self.wfile.write(output)
+                print output
+                return
+            
             if self.path.endswith("/restaurants/new"):
                 self.send_response(200)
                 self.send_header('Content-type', 'text/html')
@@ -76,6 +94,20 @@ class webserverHandler(BaseHTTPRequestHandler):
             
         def do_POST(self):
         try:
+            if self.path.endswith('/edit'):
+                ctype, pdict = cgi.parse_header(self.headers.getheader('content-type'))
+                if ctype == 'multipart/form-data':
+                    fields=cgi.parse_multipart(self.rfile, pdict)
+                    messagecontent = fields.get('newRestaurantName')
+
+                # Update Restaurant class
+                restaurantIDPath = self.path.split('/')[2]
+                myRestaurantQuery = session.query(Restaurant).filter_by(id = restaurantIDPath).one()
+                if myRestaurantQuery != []:                    
+                    myRestaurantQuery.name = messagecontent[0]
+                    session.add(myRestaurantQuery)
+                    session.commit()
+            
             if self.path.endswith('/restaurants/new'):
                 ctype, pdict = cgi.parse_header(self.headers.getheader('content-type'))
                 if ctype == 'multipart/form-data':
