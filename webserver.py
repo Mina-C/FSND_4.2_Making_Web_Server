@@ -10,7 +10,9 @@ class webserverHandler(BaseHTTPRequestHandler):
                 self.end_headers()                               # sends blank line, end of HTTP headers in the response
 
                 output = ""                                      # empty for now
-                output += "<html><body>Hello!</body></html>"
+                output += "<html><body>Hello!"
+                output += "<form method='POST' enctype='multipart/form-data' action='/hello'><h2>What would you like me to say?</h2><input name='message' type='text'><input type='submit' value='Submit'> </form>"
+                output += "</body></html>"
                 self.wfile.write(output)                         # sending a message back to the client
                 print output                                     # print for myself
                 return                                           # to exit if statement
@@ -22,6 +24,7 @@ class webserverHandler(BaseHTTPRequestHandler):
 
                 output = ""
                 output += "<html><body>&#161Hola!  <a href = '/hello'>Back to Hello</a>"
+                output += "<form method='POST' enctype='multipart/form-data' action='/hello'><h2>What would you like me to say?</h2><input name='message' type='text'><input type='submit' value='Submit'> </form>"
                 output += "</body></html>"
                 self.wfile.write(output)
                 print output
@@ -29,6 +32,31 @@ class webserverHandler(BaseHTTPRequestHandler):
             
         except IOErrors:
             self.send_error(404, "File Not Found %s" % self.path)    # to notify me error
+            
+        def do_POST(self):
+        try:
+            self.send_response(301)                                                    # send 301 ; successful POST request
+            self.end_headers()
+
+            ctype, pdict = cgi.parse_header(self.headers.getheader('content-type'))    # parses an HTML form header
+            if ctype == 'multipart/form-data':                                         # check if the form-data is received
+                fields=cgi.parse_multipart(self.rfile, pdict)                          # collect all of the fields in a form
+                messagecontent = fields.get('message')                                 # call a filed named 'message'
+            
+            output = ""
+            output += "<html><body>"
+            output += "<h2>OK, how about this: </h2>"
+            output += "<h1> %s </h1>" % messagecontent[0]
+
+            output += "<form method='POST' enctype='multipart/form-data' action='/hello'><h2>What would you like me to say?</h2>
+            <input name='message' type='text'><input type='submit' value='Submit'> </form>"
+            output += "</body></html>"
+            self.wfile.write(output)
+            print output
+
+        except:
+            pass
+        
 
 def main():
     try:
