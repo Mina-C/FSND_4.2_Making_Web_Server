@@ -1,5 +1,6 @@
 # FSND_4.2_Making_Web_Server
-This is learning by coding for Full Stack Web Developer Nanodegree Program - 4. Servers, Authorization, and CRUD - 2. Making Web Server </br>
+This is learning by coding for Full Stack Web Developer Nanodegree Program - 4. Servers, Authorization, and CRUD - 2. Making Web Server. </br>
+There will be some errors in the previous commits. Because I made this commits after finished the course and written based on my notes, not during the course I was testing the code step by step.
 Based on the restaurantmenu.db, web server is created. CRUD commands is included for this web page. </br>
 This journey creates a web site purely from scratch, using a few internal libraries like BaseHTTPServer and external libraries like SQL Alchemy.
 
