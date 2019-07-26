@@ -12,6 +12,21 @@ session = DBSession()
 class webserverHandler(BaseHTTPRequestHandler):
     def do_GET(self):
         try:
+            if self.path.endswith('/delete'):
+                restaurantIDPath = self.path.split('/')[2]
+                myRestaurantQuery = session.query(Restaurant).filter_by(id = restaurantIDPath).one()
+                if myRestaurantQuery != []:
+                    self.send_response(200)
+                    self.send_header('Content-type', 'text/html')
+                    self.end_headers()
+                    output = ""
+                    output += "<html><body><h1>Are you sure you want to delete %s?</h1>" % myRestaurantQuery.name
+                    output += "<form method='POST' enctype='multipart/form-data' action='/restaurant/%s/delete'><input type='submit' value='Delete'></form>" % restaurantIDPath
+                    output += "</body></html>"
+                    self.wfile.write(output)
+                    print output
+                    return
+
             if self.path.endswith("/edit"):
                 restaurantIDPath = self.path.split('/')[2]
                 myRestaurantQuery = session.query(Restaurant).filter_by(id = restaurantIDPath).one()
@@ -29,7 +44,7 @@ class webserverHandler(BaseHTTPRequestHandler):
                 self.wfile.write(output)
                 print output
                 return
-            
+
             if self.path.endswith("/restaurants/new"):
                 self.send_response(200)
                 self.send_header('Content-type', 'text/html')
@@ -43,20 +58,20 @@ class webserverHandler(BaseHTTPRequestHandler):
                 self.wfile.write(output)
                 print output
                 return
-            
+
             if self.path.endswith("/restaurants"):
                 self.send_response(200)
                 self.send_header('Content-type', 'text/html')
                 self.end_headers()
-    
+
                 restaurants = session.query(Restaurant).all()
                 output = ""
                 output += "<html><body>"
+                output += "<a href = '/restaurants/new'><h3> Make a New Restaurant Here </h3></a>"
                 for restaurant in restaurants:
                     output += restaurant.name
                     output += "</br><a href='/restaurants/%s/edit'>Edit</a>" % restaurant.id
-                    output += "</br>"
-                    output += "<a href='#'>Delete</a>"
+                    output += "</br><a href='/restaurants/%s/delete'>Delete</a>" % restaurant.id
                     output += "</br></br>"
                 output += "</html></body>"
                 self.wfile.write(output)
@@ -88,12 +103,20 @@ class webserverHandler(BaseHTTPRequestHandler):
                 self.wfile.write(output)
                 print output
                 return
-            
+
         except IOErrors:
             self.send_error(404, "File Not Found %s" % self.path)    # to notify me error
-            
-        def do_POST(self):
+
+    def do_POST(self):
         try:
+            if self.path.endswith('/delete'):
+                # Delete Restaurant Class
+                restaurantIDPath = self.path.split('/')[2]
+                myRestaurantQuery = session.query(Restaurant).filter_by(id = restaurantIDPath).one()
+                if myRestaurantQuery != []:
+                    session.delete(myRestaurantQuery)
+                    session.commit()
+
             if self.path.endswith('/edit'):
                 ctype, pdict = cgi.parse_header(self.headers.getheader('content-type'))
                 if ctype == 'multipart/form-data':
@@ -107,7 +130,7 @@ class webserverHandler(BaseHTTPRequestHandler):
                     myRestaurantQuery.name = messagecontent[0]
                     session.add(myRestaurantQuery)
                     session.commit()
-            
+
             if self.path.endswith('/restaurants/new'):
                 ctype, pdict = cgi.parse_header(self.headers.getheader('content-type'))
                 if ctype == 'multipart/form-data':
@@ -123,7 +146,7 @@ class webserverHandler(BaseHTTPRequestHandler):
             self.send_header('Content-type', 'text/html')
             self.send_header('Location', '/restaurants')  # create redirect
             self.end_headers()
-            
+
 #            self.send_response(301)                                                    # send 301 ; successful POST request
 #            self.end_headers()
 #            ctype, pdict = cgi.parse_header(self.headers.getheader('content-type'))    # parses an HTML form header
@@ -141,13 +164,12 @@ class webserverHandler(BaseHTTPRequestHandler):
 
         except:
             pass
-        
 
 def main():
     try:
         port = 8080 # port number is integer
         server = HTTPServer(('', port), webserverHandler) # host as an empty string
-        print "Web server running on port %s" % port
+        print "Web Server running on port %s" % port
         server.serve_forever()
 
     except KeyboardInterrupt:
