@@ -1,4 +1,5 @@
 from BaseHTTPServer import BaseHTTPRequestHandler, HTTPServer
+import cgi                                                       # decipher the message that was sent from the server
 
 class webserverHandler(BaseHTTPRequestHandler):
     def do_GET(self):
@@ -14,6 +15,18 @@ class webserverHandler(BaseHTTPRequestHandler):
                 print output                                     # print for myself
                 return                                           # to exit if statement
 
+            if self.path.endswith("/hola"):
+                self.send_response(200)
+                self.send_header('Content-type', 'text/html')
+                self.end_headers()
+
+                output = ""
+                output += "<html><body>&#161Hola!  <a href = '/hello'>Back to Hello</a>"
+                output += "</body></html>"
+                self.wfile.write(output)
+                print output
+                return
+            
         except IOErrors:
             self.send_error(404, "File Not Found %s" % self.path)    # to notify me error
 
