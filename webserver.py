@@ -10,8 +10,22 @@ DBSession = sessionmaker(bind = engine)
 session = DBSession()
 
 class webserverHandler(BaseHTTPRequestHandler):
-    def do_GET(self):        
+    def do_GET(self):
         try:
+            if self.path.endswith("/restaurants/new"):
+                self.send_response(200)
+                self.send_header('Content-type', 'text/html')
+                self.end_headers()
+
+                output =""
+                output +="<html><body>"
+                output +="<h1>Make a New Restaurant</h1>"
+                output +="<form method='POST' enctype='multipart/form-data' action='/restaurants/new'><input name='newRestaurantName' type='text' placeholder='New Restaurant Name'><input type='submit' value='Create'></form>"
+                output +="</html></body>"
+                self.wfile.write(output)
+                print output
+                return
+            
             if self.path.endswith("/restaurants"):
                 self.send_response(200)
                 self.send_header('Content-type', 'text/html')
@@ -62,23 +76,36 @@ class webserverHandler(BaseHTTPRequestHandler):
             
         def do_POST(self):
         try:
-            self.send_response(301)                                                    # send 301 ; successful POST request
+            if self.path.endswith('/restaurants/new'):
+                ctype, pdict = cgi.parse_header(self.headers.getheader('content-type'))
+                if ctype == 'multipart/form-data':
+                    fields=cgi.parse_multipart(self.rfile, pdict)
+                    messagecontent = fields.get('newRestaurantName')
+
+                # Create new Restaurant class
+                newRestaurant = Restaurant(name = messagecontent[0])
+                session.add(newRestaurant)
+                session.commit()
+                
+            self.send_response(301)
+            self.send_header('Content-type', 'text/html')
+            self.send_header('Location', '/restaurants')  # create redirect
             self.end_headers()
-
-            ctype, pdict = cgi.parse_header(self.headers.getheader('content-type'))    # parses an HTML form header
-            if ctype == 'multipart/form-data':                                         # check if the form-data is received
-                fields=cgi.parse_multipart(self.rfile, pdict)                          # collect all of the fields in a form
-                messagecontent = fields.get('message')                                 # call a filed named 'message'
             
-            output = ""
-            output += "<html><body>"
-            output += "<h2>OK, how about this: </h2>"
-            output += "<h1> %s </h1>" % messagecontent[0]
-
-            output += "<form method='POST' enctype='multipart/form-data' action='/hello'><h2>What would you like me to say?</h2><input name='message' type='text'><input type='submit' value='Submit'> </form>"
-            output += "</body></html>"
-            self.wfile.write(output)
-            print output
+#            self.send_response(301)                                                    # send 301 ; successful POST request
+#            self.end_headers()
+#            ctype, pdict = cgi.parse_header(self.headers.getheader('content-type'))    # parses an HTML form header
+#            if ctype == 'multipart/form-data':                                         # check if the form-data is received
+#                fields=cgi.parse_multipart(self.rfile, pdict)                          # collect all of the fields in a form
+#                messagecontent = fields.get('message')                                 # call a filed named 'message'
+#            output = ""
+#            output += "<html><body>"
+#            output += "<h2>OK, how about this: </h2>"
+#            output += "<h1> %s </h1>" % messagecontent[0]
+#            output += "<form method='POST' enctype='multipart/form-data' action='/hello'><h2>What would you like me to say?</h2><input name='message' type='text'><input type='submit' value='Submit'> </form>"
+#            output += "</body></html>"
+#            self.wfile.write(output)
+#            print output
 
         except:
             pass
