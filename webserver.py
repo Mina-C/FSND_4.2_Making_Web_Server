@@ -12,6 +12,23 @@ session = DBSession()
 class webserverHandler(BaseHTTPRequestHandler):
     def do_GET(self):
         try:
+            if self.path.endswith("/restaurants"):
+            self.send_response(200)
+            self.send_header('Content-type', 'text/html')
+            self.end_headers()
+
+            restaurants = session.query(Restaurant).all()
+            output = ""
+            output += "<html><body>"
+            for restaurant in restaurants:
+                output += restaurant.name
+                output += "</br>"
+            output += "</html></body>"
+            self.wfile.write(output)
+            print output
+            return
+        
+        try:
             if self.path.endswith("/hello"):                     # find URL ends with '/hello'
                 self.send_response(200)                          # if yes, send 200; successful GET request
                 self.send_header('Content-type', 'text/html')    # telling to client that we will reply text in the form of HTML
