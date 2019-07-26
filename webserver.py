@@ -54,7 +54,7 @@ class webserverHandler(BaseHTTPRequestHandler):
                 output += "<html><body>"
                 for restaurant in restaurants:
                     output += restaurant.name
-                    output += "<a href='#'>Edit</a>"
+                    output += "</br><a href='/restaurants/%s/edit'>Edit</a>" % restaurant.id
                     output += "</br>"
                     output += "<a href='#'>Delete</a>"
                     output += "</br></br>"
